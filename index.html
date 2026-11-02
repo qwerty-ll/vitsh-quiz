@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Квиз «Конец Смуты» — ВИТШ Медиа</title>
+<meta name="description" content="10 вопросов о Смуте, ополчении Минина и Пожарского и Дне народного единства. Две минуты.">
+<meta property="og:title" content="Квиз «Конец Смуты»">
+<meta property="og:description" content="10 вопросов ко Дню народного единства от ВИТШ Медиа. Две минуты.">
+<meta property="og:image" content="https://qwerty-ll.github.io/vitsh-quiz/og.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #4392ee; --navy: #173160; --night: #0f1d38; --mid: #8dbaf4; --pale: #cfe2fb; --mist: #eef4fd;
+    --paper: #fafaf8; --ink: #111; --ink-2: #4a4a48; --muted: #8a8a86; --line: #e6e8ec; --bad: #e0604c; --bad-soft: #fdecea;
+    --sans: "Onest", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { min-height: 100svh; background-color: var(--paper); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased;
+    background-image: linear-gradient(to right, var(--line) 1px, transparent 1px), linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 40px 40px; }
+  .app { max-width: 560px; margin: 0 auto; padding: 20px 16px 40px; min-height: 100svh; display: flex; flex-direction: column; }
+  header { display: flex; justify-content: space-between; align-items: center; height: 56px; }
+  .meta { font: 500 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+  .screen { display: none; flex: 1; flex-direction: column; animation: in .45s cubic-bezier(.2,.8,.2,1); }
+  .screen.on { display: flex; }
+  .screen { padding-top: 14px; }
+  @keyframes in { from { opacity: 0; transform: translateY(14px); } }
+  @media (prefers-reduced-motion: reduce) { .screen, .opt, .fact { animation: none !important; transition: none !important; } }
+
+  .eyebrow { font: 500 12px/20px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--blue); }
+  h1 { font: 500 clamp(44px, 13vw, 64px)/1 var(--sans); letter-spacing: -0.045em; margin: 14px 0 16px; }
+  h1 span { color: var(--muted); }
+  .lead { font-size: 18px; line-height: 28px; color: var(--ink-2); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
+
+  /* Иллюстрация на старте: много точек собираются в квадрат */
+  .unity { margin: 28px 0 24px; aspect-ratio: 2 / 1; border-radius: 24px; background: #fff; border: 1px solid var(--line); position: relative; overflow: hidden; }
+  .unity svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  label { display: block; font: 500 12px/20px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  input { width: 100%; height: 56px; border-radius: 16px; border: 1px solid #d9dce2; background: #fff; padding: 0 18px; font: 400 17px var(--sans); color: var(--ink); }
+  input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: transparent; }
+  .hint { font-size: 13px; line-height: 20px; color: var(--muted); margin-top: 8px; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 60px; border: 0; border-radius: 18px;
+    background: var(--blue); color: #fff; font: 500 18px var(--sans); cursor: pointer; margin-top: 20px; text-decoration: none; transition: transform .15s, background .2s; }
+  .btn:active { transform: scale(.98); }
+  .btn.ghost { background: #fff; color: var(--ink); border: 1px solid #d9dce2; margin-top: 12px; }
+  .btn.vk { background: #0077ff; }
+
+  /* Прогресс: 10 точек — по одной на вопрос */
+  .dots { display: flex; gap: 8px; align-items: center; margin: 8px 0 24px; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #c5cbd6; transition: all .3s; }
+  .dots i.now { border-color: var(--blue); transform: scale(1.25); }
+  .dots i.ok { background: var(--blue); border-color: var(--blue); }
+  .dots i.bad { background: var(--navy); border-color: var(--navy); transform: scale(.7); }
+  .qnum { font: 500 12px/20px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .q { font: 500 clamp(26px, 7.4vw, 34px)/1.15 var(--sans); letter-spacing: -0.03em; margin: 10px 0 22px; }
+  .opts { display: grid; gap: 10px; }
+  .opt { text-align: left; width: 100%; min-height: 60px; padding: 16px 52px 16px 18px; border-radius: 18px; border: 1px solid #d9dce2; background: #fff;
+    font: 400 17px/24px var(--sans); color: var(--ink); cursor: pointer; position: relative; transition: background .2s, border-color .2s, color .2s, transform .15s; }
+  .opt:active { transform: scale(.985); }
+  .opt:disabled { cursor: default; }
+  .opt::after { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font: 600 18px var(--sans); }
+  .opt.ok { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .opt.ok::after { content: "✓"; }
+  .opt.bad { background: var(--bad-soft); border-color: var(--bad); }
+  .opt.bad::after { content: "✕"; color: var(--bad); }
+  .opt.dim { opacity: .45; }
+  .fact { margin-top: 16px; background: var(--mist); border-radius: 20px; padding: 18px 20px; animation: in .4s cubic-bezier(.2,.8,.2,1); }
+  .fact b { display: block; font: 500 12px/20px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+  .fact p { font-size: 16px; line-height: 24px; color: var(--ink-2); }
+
+  .score { display: flex; align-items: baseline; gap: 12px; margin: 18px 0 6px; }
+  .score b { font: 600 clamp(88px, 28vw, 120px)/1 var(--sans); letter-spacing: -0.06em; color: var(--blue); }
+  .score span { font: 500 22px var(--sans); color: var(--muted); }
+  .rank { font: 500 clamp(28px, 8vw, 36px)/1.1 var(--sans); letter-spacing: -0.03em; margin-top: 8px; }
+  .status { font: 500 12px/20px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 16px; min-height: 20px; }
+  footer { margin-top: auto; padding-top: 28px; font-size: 13px; line-height: 20px; color: var(--muted); }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header><span id="logo"></span><span class="meta">Квиз · 4 ноября</span></header>
+
+  <!-- Старт -->
+  <section class="screen on" id="start">
+    <div class="eyebrow">День народного единства</div>
+    <h1>Конец<br><span>Смуты</span></h1>
+    <p class="lead">10 вопросов о Смуте, ополчении Минина и Пожарского и о том, откуда взялся праздник. Займёт пару минут.</p>
+    <div class="unity" aria-hidden="true"><svg id="unity" viewBox="0 0 400 200"></svg></div>
+    <label for="name">Имя и группа</label>
+    <input id="name" autocomplete="off" placeholder="Например: Аня, ИТ-21" maxlength="60">
+    <p class="hint">Необязательно. Результаты видят только организаторы — так мы найдём лучших.</p>
+    <button class="btn" id="go">Начать квиз →</button>
+  </section>
+
+  <!-- Вопрос -->
+  <section class="screen" id="question">
+    <div class="dots" id="dots"></div>
+    <div class="qnum" id="qnum"></div>
+    <div class="q" id="qtext"></div>
+    <div class="opts" id="opts"></div>
+    <div id="after"></div>
+  </section>
+
+  <!-- Итог -->
+  <section class="screen" id="result">
+    <div class="eyebrow">Твой результат</div>
+    <div class="score"><b id="sc"></b><span id="sct"></span></div>
+    <div class="dots" id="rdots"></div>
+    <div class="rank" id="rank"></div>
+    <p class="lead" id="rtext" style="margin-top:10px"></p>
+    <p class="lead" id="stats" style="margin-top:10px;color:var(--blue)"></p>
+    <a class="btn vk" id="share" target="_blank" rel="noopener">Поделиться ВКонтакте</a>
+    <button class="btn ghost" id="again">Пройти ещё раз</button>
+    <div class="status" id="status"></div>
+  </section>
+
+  <footer>Квиз подготовило ВИТШ Медиа — студенческое медиа Высшей ИТ-школы.</footer>
+</div>
+
+<script src="brand.js"></script>
+<script src="questions.js"></script>
+<script src="config.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const Q = window.QUIZ.questions, N = Q.length;
+  const KEY = "vitsh-quiz-smuta";
+  let order = [], cur = 0, picks = [], score = 0, t0 = 0;
+
+  // ---------- Оформление ----------
+  VM.ready().then(() => {
+    const L = VM.lockup({ G: 7, layout: "h" });
+    $("logo").innerHTML = `<svg width="${Math.ceil(L.w)}" height="${L.h}" style="display:block">${L.svg}</svg>`;
+  });
+  // «Из многих — одно»: точки по полю стягиваются к квадрату знака
+  (function unity() {
+    const svg = $("unity"), dots = [];
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let k = 0; k < 110; k++) {
+      const x = 20 + rnd() * 360, y = 16 + rnd() * 168;
+      const d = Math.hypot(x - 200, y - 100) / 200; // ближе к центру — крупнее
+      if (d < 0.4) continue; // вокруг знака — свободное кольцо
+      dots.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1.2 + 5.2 * (1 - d) ** 2).toFixed(2)}" fill="${k % 4 ? "#173160" : "#8dbaf4"}"/>`);
+    }
+    svg.innerHTML = `<g opacity=".9">${dots.join("")}</g>`
+      + `<g transform="translate(150 50) scale(0.5)">${VM.markGroup().svg}</g>`;
+  })();
+
+  // ---------- Квиз ----------
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  function show(id) { document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === id)); scrollTo({ top: 0, behavior: "smooth" }); }
+  function drawDots(el, upto) {
+    el.innerHTML = Q.map((_, k) => `<i class="${k < picks.length ? (picks[k].ok ? "ok" : "bad") : k === upto ? "now" : ""}"></i>`).join("");
+  }
+
+  function start() {
+    order = Q.map((q) => shuffle(q.answers.map((text, k) => ({ text, ok: k === 0 }))));
+    cur = 0; picks = []; score = 0; t0 = Date.now();
+    show("question"); ask();
+  }
+
+  function ask() {
+    const q = Q[cur];
+    drawDots($("dots"), cur);
+    $("qnum").textContent = `Вопрос ${cur + 1} из ${N}`;
+    $("qtext").textContent = q.q;
+    $("after").innerHTML = "";
+    $("opts").innerHTML = "";
+    order[cur].forEach((a) => {
+      const b = document.createElement("button");
+      b.className = "opt"; b.textContent = a.text;
+      b.onclick = () => answer(a, b);
+      $("opts").appendChild(b);
+    });
+  }
+
+  function answer(a, btn) {
+    const buttons = [...$("opts").children];
+    buttons.forEach((b, k) => {
+      b.disabled = true;
+      if (order[cur][k].ok) b.classList.add("ok");
+      else if (b === btn) b.classList.add("bad");
+      else b.classList.add("dim");
+    });
+    picks.push({ ok: a.ok, text: a.text });
+    if (a.ok) score++;
+    drawDots($("dots"), -1);
+    const last = cur === N - 1;
+    $("after").innerHTML = `<div class="fact"><b>${a.ok ? "Верно" : "Не совсем"}</b><p>${Q[cur].fact}</p></div>
+      <button class="btn" id="next">${last ? "Узнать результат" : "Дальше →"}</button>`;
+    $("next").onclick = () => (last ? finish() : (cur++, ask()));
+    $("next").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function finish() {
+    const ranks = window.QUIZ.ranks;
+    const [, title, text] = ranks.filter(([min]) => score >= min).pop();
+    $("sc").textContent = score; $("sct").textContent = `из ${N}`;
+    drawDots($("rdots"), -1);
+    $("rank").textContent = title; $("rtext").textContent = text;
+    $("stats").textContent = "";
+    const url = location.href.split("?")[0].split("#")[0];
+    $("share").href = `https://vk.com/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(`Мой результат в квизе «Конец Смуты»: ${score} из ${N} — ${title}. А ты?`)}`;
+    show("result");
+    save();
+  }
+
+  // ---------- Результаты: Google Таблица через Apps Script ----------
+  async function save() {
+    const ep = window.QUIZ_ENDPOINT;
+    if (!ep) { $("status").textContent = ""; return; }
+    let attempt = 1;
+    try { attempt = (+localStorage.getItem(KEY) || 0) + 1; localStorage.setItem(KEY, attempt); } catch {}
+    const body = {
+      name: $("name").value.trim().slice(0, 60), score, total: N, attempt,
+      seconds: Math.round((Date.now() - t0) / 1000),
+      answers: picks.map((p) => (p.ok ? "1" : "0")).join(""),
+    };
+    $("status").textContent = "Сохраняем результат…";
+    try {
+      // text/plain — без предварительного CORS-запроса, Apps Script принимает тело как есть
+      await fetch(ep, { method: "POST", body: JSON.stringify(body), headers: { "Content-Type": "text/plain;charset=utf-8" } });
+      $("status").textContent = "Результат сохранён ✓";
+    } catch {
+      $("status").textContent = "Не получилось сохранить — проверь интернет";
+    }
+    try {
+      const st = await (await fetch(ep)).json();
+      const others = st.hist.reduce((s, n) => s + n, 0);
+      if (others > 1) {
+        const below = st.hist.slice(0, score).reduce((s, n) => s + n, 0);
+        const people = others % 10 >= 2 && others % 10 <= 4 && (others % 100 < 10 || others % 100 >= 20) ? "человека" : "человек";
+        $("stats").textContent = `Квиз прошли ${others} ${people}. Твой результат лучше, чем у ${Math.round((below / others) * 100)}% участников.`;
+      }
+    } catch {}
+  }
+
+  $("go").onclick = start;
+  $("again").onclick = start;
+</script>
+</body>
+</html>

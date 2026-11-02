@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <mask id="holes" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+      <rect width="200" height="200" fill="#fff"/>
+      <circle id="hole-0-2" cx="87.5" cy="87.5" r="10.13" fill="#000"/>
+      <circle id="hole-1-2" cx="112.5" cy="87.5" r="8.5" fill="#000"/>
+      <circle id="hole-0-3" cx="87.5" cy="112.5" r="11.75" fill="#000"/>
+      <circle id="hole-1-3" cx="112.5" cy="112.5" r="10.13" fill="#000"/>
+    </mask>
+  </defs>
+  <rect id="square" x="25" y="75" width="100" height="100" rx="10" fill="#4392ee" mask="url(#holes)"/>
+  <g id="dots">
+    <circle id="dot-0-0" cx="87.5" cy="37.5" r="6.88" fill="#173160"/>
+    <circle id="dot-1-0" cx="112.5" cy="37.5" r="5.25" fill="#173160"/>
+    <circle id="dot-2-0" cx="137.5" cy="37.5" r="3.62" fill="#173160"/>
+    <circle id="dot-3-0" cx="162.5" cy="37.5" r="2" fill="#173160"/>
+    <circle id="dot-0-1" cx="87.5" cy="62.5" r="8.5" fill="#173160"/>
+    <circle id="dot-1-1" cx="112.5" cy="62.5" r="6.88" fill="#173160"/>
+    <circle id="dot-2-1" cx="137.5" cy="62.5" r="5.25" fill="#173160"/>
+    <circle id="dot-3-1" cx="162.5" cy="62.5" r="3.62" fill="#173160"/>
+    <circle id="dot-2-2" cx="137.5" cy="87.5" r="6.88" fill="#173160"/>
+    <circle id="dot-3-2" cx="162.5" cy="87.5" r="5.25" fill="#173160"/>
+    <circle id="dot-2-3" cx="137.5" cy="112.5" r="8.5" fill="#173160"/>
+    <circle id="dot-3-3" cx="162.5" cy="112.5" r="6.88" fill="#173160"/>
+  </g>
+</svg>
