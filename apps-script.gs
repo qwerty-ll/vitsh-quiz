@@ -3,7 +3,8 @@
 //   POST — дописывает строку с результатом;  GET — отдаёт распределение баллов для фразы «лучше, чем у N%».
 
 const SHEET = "Результаты";
-const HEADER = ["Время", "Имя и группа", "Баллы", "Из", "Попытка", "Секунд", "Ответы (1 — верно)"];
+// Только анонимная статистика: никаких имён и контактов, поэтому таблица не хранит персональные данные.
+const HEADER = ["Время", "Баллы", "Из", "Попытка", "Секунд", "Ответы (1 — верно)"];
 
 function sheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -28,7 +29,6 @@ function doPost(e) {
     const score = Math.max(0, Math.min(Number(d.total) || 10, Number(d.score) || 0));
     sheet_().appendRow([
       new Date(),
-      String(d.name || "").slice(0, 60),
       score,
       Number(d.total) || 10,
       Number(d.attempt) || 1,
@@ -44,6 +44,6 @@ function doPost(e) {
 function doGet() {
   const rows = sheet_().getDataRange().getValues().slice(1);
   const hist = new Array(11).fill(0);
-  rows.forEach((r) => { const s = Number(r[2]); if (s >= 0 && s <= 10) hist[s]++; });
+  rows.forEach((r) => { const s = Number(r[1]); if (s >= 0 && s <= 10) hist[s]++; });
   return json_({ count: rows.length, hist });
 }

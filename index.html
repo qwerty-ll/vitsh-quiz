@@ -38,14 +38,19 @@
   .lead { font-size: 18px; line-height: 28px; color: var(--ink-2); }
   .card { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
 
-  /* Иллюстрация на старте: много точек собираются в квадрат */
-  .unity { margin: 28px 0 24px; aspect-ratio: 2 / 1; border-radius: 24px; background: #fff; border: 1px solid var(--line); position: relative; overflow: hidden; }
-  .unity svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-  label { display: block; font: 500 12px/20px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  input { width: 100%; height: 56px; border-radius: 16px; border: 1px solid #d9dce2; background: #fff; padding: 0 18px; font: 400 17px var(--sans); color: var(--ink); }
-  input:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: transparent; }
-  .hint { font-size: 13px; line-height: 20px; color: var(--muted); margin-top: 8px; }
+  /* Лента времени на старте: полоса под годами светлеет к синему — от Смуты к её концу */
+  .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 26px 0 14px;
+    background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px 18px 18px; }
+  .tl { display: flex; flex-direction: column; padding-right: 8px; }
+  .tl::before { content: ""; height: 6px; border-radius: 3px; background: var(--c); margin-bottom: 16px; }
+  .tl b { font: 600 24px/1 var(--sans); letter-spacing: -0.03em; color: var(--navy); }
+  .tl span { font-size: 13px; line-height: 18px; color: var(--ink-2); margin-top: 6px; }
+  /* Три факта о квизе вместо формы: число крупно, подпись моноширинным */
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .facts div { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px 12px; }
+  .facts b { display: block; font: 600 40px/1 var(--sans); letter-spacing: -0.04em; color: var(--blue); }
+  .facts span { display: block; font: 500 11px/20px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+  .hint { font-size: 13px; line-height: 20px; color: var(--muted); margin-top: 12px; text-align: center; }
   .btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 60px; border: 0; border-radius: 18px;
     background: var(--blue); color: #fff; font: 500 18px var(--sans); cursor: pointer; margin-top: 20px; text-decoration: none; transition: transform .15s, background .2s; }
   .btn:active { transform: scale(.98); }
@@ -92,12 +97,19 @@
   <section class="screen on" id="start">
     <div class="eyebrow">День народного единства</div>
     <h1>Конец<br><span>Смуты</span></h1>
-    <p class="lead">10 вопросов о Смуте, ополчении Минина и Пожарского и о том, откуда взялся праздник. Займёт пару минут.</p>
-    <div class="unity" aria-hidden="true"><svg id="unity" viewBox="0 0 400 200"></svg></div>
-    <label for="name">Имя и группа</label>
-    <input id="name" autocomplete="off" placeholder="Например: Аня, ИТ-21" maxlength="60">
-    <p class="hint">Необязательно. Результаты видят только организаторы — так мы найдём лучших.</p>
+    <p class="lead">Смута, ополчение Минина и Пожарского и то, откуда взялся праздник. Проверь, чем всё закончилось.</p>
+    <div class="timeline">
+      <div class="tl" style="--c:var(--pale)"><b>1598</b><span>Начало Смуты</span></div>
+      <div class="tl" style="--c:var(--mid)"><b>1612</b><span>Ополчение освобождает Москву</span></div>
+      <div class="tl" style="--c:var(--blue)"><b>1613</b><span>Земский собор и конец Смуты</span></div>
+    </div>
+    <div class="facts">
+      <div><b>10</b><span>вопросов</span></div>
+      <div><b>2</b><span>минуты</span></div>
+      <div><b>0</b><span>регистраций</span></div>
+    </div>
     <button class="btn" id="go">Начать квиз →</button>
+    <p class="hint">Без имён: сохраняем только анонимную статистику — баллы и время.</p>
   </section>
 
   <!-- Вопрос -->
@@ -139,20 +151,6 @@
     const L = VM.lockup({ G: 7, layout: "h" });
     $("logo").innerHTML = `<svg width="${Math.ceil(L.w)}" height="${L.h}" style="display:block">${L.svg}</svg>`;
   });
-  // «Из многих — одно»: точки по полю стягиваются к квадрату знака
-  (function unity() {
-    const svg = $("unity"), dots = [];
-    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-    for (let k = 0; k < 110; k++) {
-      const x = 20 + rnd() * 360, y = 16 + rnd() * 168;
-      const d = Math.hypot(x - 200, y - 100) / 200; // ближе к центру — крупнее
-      if (d < 0.4) continue; // вокруг знака — свободное кольцо
-      dots.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1.2 + 5.2 * (1 - d) ** 2).toFixed(2)}" fill="${k % 4 ? "#173160" : "#8dbaf4"}"/>`);
-    }
-    svg.innerHTML = `<g opacity=".9">${dots.join("")}</g>`
-      + `<g transform="translate(150 50) scale(0.5)">${VM.markGroup().svg}</g>`;
-  })();
-
   // ---------- Квиз ----------
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   function show(id) { document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === id)); scrollTo({ top: 0, behavior: "smooth" }); }
@@ -219,7 +217,7 @@
     let attempt = 1;
     try { attempt = (+localStorage.getItem(KEY) || 0) + 1; localStorage.setItem(KEY, attempt); } catch {}
     const body = {
-      name: $("name").value.trim().slice(0, 60), score, total: N, attempt,
+      score, total: N, attempt, // без имени и других персональных данных
       seconds: Math.round((Date.now() - t0) / 1000),
       answers: picks.map((p) => (p.ok ? "1" : "0")).join(""),
     };
