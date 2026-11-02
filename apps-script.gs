@@ -1,10 +1,11 @@
 // Сохранение результатов квиза в Google Таблицу. Вставляется в Расширения → Apps Script этой таблицы
 // и публикуется как веб-приложение (доступ: «Все»). Подробно — в quiz/README.md.
 //   POST — дописывает строку с результатом;  GET — отдаёт распределение баллов для фразы «лучше, чем у N%».
+// Только анонимная статистика: никаких имён и контактов, поэтому таблица не хранит персональные данные.
+// «Код» — случайный код попытки: по нему победитель розыгрыша сам напишет в сообщения сообщества.
 
 const SHEET = "Результаты";
-// Только анонимная статистика: никаких имён и контактов, поэтому таблица не хранит персональные данные.
-const HEADER = ["Время", "Баллы", "Из", "Попытка", "Секунд", "Ответы (1 — верно)"];
+const HEADER = ["Время", "Код", "Баллы", "Из", "Попытка", "Секунд", "Ответы (1 — верно)"];
 
 function sheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -26,14 +27,16 @@ function doPost(e) {
   lock.waitLock(10000); // несколько человек могут закончить одновременно
   try {
     const d = JSON.parse(e.postData.contents);
-    const score = Math.max(0, Math.min(Number(d.total) || 10, Number(d.score) || 0));
+    const answers = String(d.answers || "").replace(/[^01]/g, "").slice(0, 50);
+    const code = String(d.code || "").toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 9);
     sheet_().appendRow([
       new Date(),
-      score,
-      Number(d.total) || 10,
+      code,
+      (answers.match(/1/g) || []).length, // баллы считаем по ответам, а не берём на веру
+      answers.length,
       Number(d.attempt) || 1,
       Number(d.seconds) || "",
-      "'" + String(d.answers || "").replace(/[^01]/g, "").slice(0, 20), // апостроф — чтобы «0101…» не стало числом
+      "'" + answers, // апостроф — чтобы «0101…» не стало числом
     ]);
     return json_({ ok: true });
   } finally {
@@ -42,8 +45,9 @@ function doPost(e) {
 }
 
 function doGet() {
-  const rows = sheet_().getDataRange().getValues().slice(1);
-  const hist = new Array(11).fill(0);
-  rows.forEach((r) => { const s = Number(r[1]); if (s >= 0 && s <= 10) hist[s]++; });
-  return json_({ count: rows.length, hist });
+  const values = sheet_().getDataRange().getValues();
+  const col = values[0].indexOf("Баллы");
+  const hist = new Array(51).fill(0);
+  values.slice(1).forEach((r) => { const s = Number(r[col]); if (s >= 0 && s <= 50) hist[s]++; });
+  return json_({ count: values.length - 1, hist });
 }

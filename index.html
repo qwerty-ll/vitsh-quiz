@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Квиз «Конец Смуты» — ВИТШ Медиа</title>
-<meta name="description" content="10 вопросов о Смуте, ополчении Минина и Пожарского и Дне народного единства. Две минуты.">
+<meta name="description" content="20 вопросов о Смуте, ополчении Минина и Пожарского и Дне народного единства. Среди тех, кто ответит на все, — розыгрыш приза.">
 <meta property="og:title" content="Квиз «Конец Смуты»">
-<meta property="og:description" content="10 вопросов ко Дню народного единства от ВИТШ Медиа. Две минуты.">
+<meta property="og:description" content="20 вопросов ко Дню народного единства от ВИТШ Медиа. Ответь на все — и участвуй в розыгрыше.">
 <meta property="og:image" content="https://qwerty-ll.github.io/vitsh-quiz/og.png">
 <meta property="og:type" content="website">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -58,8 +58,8 @@
   .btn.vk { background: #0077ff; }
 
   /* Прогресс: 10 точек — по одной на вопрос */
-  .dots { display: flex; gap: 8px; align-items: center; margin: 8px 0 24px; }
-  .dots i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #c5cbd6; transition: all .3s; }
+  .dots { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin: 8px 0 24px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #c5cbd6; transition: all .3s; }
   .dots i.now { border-color: var(--blue); transform: scale(1.25); }
   .dots i.ok { background: var(--blue); border-color: var(--blue); }
   .dots i.bad { background: var(--navy); border-color: var(--navy); transform: scale(.7); }
@@ -84,6 +84,14 @@
   .score b { font: 600 clamp(88px, 28vw, 120px)/1 var(--sans); letter-spacing: -0.06em; color: var(--blue); }
   .score span { font: 500 22px var(--sans); color: var(--muted); }
   .rank { font: 500 clamp(28px, 8vw, 36px)/1.1 var(--sans); letter-spacing: -0.03em; margin-top: 8px; }
+  /* Розыгрыш: код участника вместо имени — по нему победитель сам напишет нам во ВКонтакте */
+  .prize { margin-top: 22px; }
+  .prize p { font-size: 16px; line-height: 24px; color: var(--ink-2); margin-top: 6px; }
+  .code { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 14px 16px 14px 20px;
+    border-radius: 16px; background: var(--mist); font: 600 24px/1 var(--mono); letter-spacing: .08em; color: var(--navy); white-space: nowrap; }
+  .code button { border: 0; background: #fff; border-radius: 12px; height: 40px; padding: 0 14px; font: 500 14px var(--sans); color: var(--ink); cursor: pointer; }
+  .prize .btn { margin-top: 12px; height: 54px; font-size: 16px; }
+  [hidden] { display: none !important; }
   .status { font: 500 12px/20px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 16px; min-height: 20px; }
   footer { margin-top: auto; padding-top: 28px; font-size: 13px; line-height: 20px; color: var(--muted); }
   footer a { color: inherit; }
@@ -104,9 +112,9 @@
       <div class="tl" style="--c:var(--blue)"><b>1613</b><span>Земский собор и конец Смуты</span></div>
     </div>
     <div class="facts">
-      <div><b>10</b><span>вопросов</span></div>
-      <div><b>2</b><span>минуты</span></div>
-      <div><b>0</b><span>регистраций</span></div>
+      <div><b>20</b><span>вопросов</span></div>
+      <div><b>5</b><span>минут</span></div>
+      <div><b>1</b><span>приз</span></div>
     </div>
     <button class="btn" id="go">Начать квиз →</button>
     <p class="hint">Без имён: сохраняем только анонимную статистику — баллы и время.</p>
@@ -129,6 +137,12 @@
     <div class="rank" id="rank"></div>
     <p class="lead" id="rtext" style="margin-top:10px"></p>
     <p class="lead" id="stats" style="margin-top:10px;color:var(--blue)"></p>
+    <div class="card prize">
+      <div class="eyebrow">Розыгрыш приза</div>
+      <p id="prizeText"></p>
+      <div class="code"><span id="code"></span><button id="copy">Скопировать</button></div>
+      <a class="btn" id="claim" target="_blank" rel="noopener" hidden>Отправить код в сообщения</a>
+    </div>
     <a class="btn vk" id="share" target="_blank" rel="noopener">Поделиться ВКонтакте</a>
     <button class="btn ghost" id="again">Пройти ещё раз</button>
     <div class="status" id="status"></div>
@@ -144,7 +158,15 @@
   const $ = (id) => document.getElementById(id);
   const Q = window.QUIZ.questions, N = Q.length;
   const KEY = "vitsh-quiz-smuta";
-  let order = [], cur = 0, picks = [], score = 0, t0 = 0;
+  const PRIZE = window.QUIZ_PRIZE || {};
+  let order = [], cur = 0, picks = [], score = 0, t0 = 0, code = "";
+
+  // Код участника: 6 знаков без похожих букв и цифр (0/O, 1/I), например «7KQ-M4P»
+  function makeCode() {
+    const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = crypto.getRandomValues(new Uint8Array(6));
+    const s = [...r].map((n) => abc[n % abc.length]).join("");
+    return `${s.slice(0, 3)}-${s.slice(3)}`;
+  }
 
   // ---------- Оформление ----------
   VM.ready().then(() => {
@@ -168,7 +190,7 @@
     const q = Q[cur];
     drawDots($("dots"), cur);
     $("qnum").textContent = `Вопрос ${cur + 1} из ${N}`;
-    $("qtext").textContent = q.q;
+    $("qtext").textContent = q.q.replace(/(\d) /g, "$1\u00a0"); // «4 ноября» не разрывается
     $("after").innerHTML = "";
     $("opts").innerHTML = "";
     order[cur].forEach((a) => {
@@ -204,6 +226,13 @@
     drawDots($("rdots"), -1);
     $("rank").textContent = title; $("rtext").textContent = text;
     $("stats").textContent = "";
+    code = makeCode();
+    $("code").textContent = code;
+    $("prizeText").textContent = score === N
+      ? `Все ${N} ответов верные — ты в розыгрыше! Пришли этот код в сообщения сообщества${PRIZE.until ? ` до ${PRIZE.until}` : ""}: мы найдём его в таблице результатов. Один человек — одна заявка.`
+      : `Приз разыгрываем среди тех, кто ответит на все ${N} вопросов. Попробуй ещё раз — у каждой попытки свой код.`;
+    $("claim").hidden = !(score === N && PRIZE.vk);
+    if (PRIZE.vk) $("claim").href = PRIZE.vk;
     const url = location.href.split("?")[0].split("#")[0];
     $("share").href = `https://vk.com/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(`Мой результат в квизе «Конец Смуты»: ${score} из ${N} — ${title}. А ты?`)}`;
     show("result");
@@ -217,7 +246,7 @@
     let attempt = 1;
     try { attempt = (+localStorage.getItem(KEY) || 0) + 1; localStorage.setItem(KEY, attempt); } catch {}
     const body = {
-      score, total: N, attempt, // без имени и других персональных данных
+      code, score, total: N, attempt, // без имени и других персональных данных
       seconds: Math.round((Date.now() - t0) / 1000),
       answers: picks.map((p) => (p.ok ? "1" : "0")).join(""),
     };
@@ -240,6 +269,11 @@
     } catch {}
   }
 
+  $("copy").onclick = async () => {
+    try { await navigator.clipboard.writeText(code); $("copy").textContent = "Готово ✓"; }
+    catch { $("copy").textContent = "Выдели и скопируй"; }
+    setTimeout(() => ($("copy").textContent = "Скопировать"), 2000);
+  };
   $("go").onclick = start;
   $("again").onclick = start;
 </script>
